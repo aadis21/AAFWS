@@ -96,52 +96,14 @@
       <div><h2>Member Profiles</h2><p>Registered members of AAFWS</p></div>
       <button class="btn-primary small" onclick="openForm()">+ Register Profile</button>
     </div>
-    <div class="profiles-grid">
-      <div class="profile-card">
-        <div class="profile-top">
-          <div class="avatar">PS</div>
-          <div class="profile-info"><p class="profile-name">Adv. Priya Sharma</p><p class="profile-role">Senior Advocate</p></div>
-          <span class="badge-status active">Active</span>
-        </div>
-        <div class="profile-meta">
-          <div class="meta-item">📍 Delhi</div><div class="meta-item">⚖️ Constitutional Law</div>
-          <div class="meta-item">🕐 18 years</div><div class="meta-item">🏛️ Bar Enrolled</div>
-        </div>
-      </div>
-      <div class="profile-card">
-        <div class="profile-top">
-          <div class="avatar">RM</div>
-          <div class="profile-info"><p class="profile-name">Adv. Rahul Mehta</p><p class="profile-role">Junior Advocate</p></div>
-          <span class="badge-status active">Active</span>
-        </div>
-        <div class="profile-meta">
-          <div class="meta-item">📍 Mumbai</div><div class="meta-item">⚖️ Criminal Law</div>
-          <div class="meta-item">🕐 3 years</div><div class="meta-item">🏛️ Bar Enrolled</div>
-        </div>
-      </div>
-      <div class="profile-card">
-        <div class="profile-top">
-          <div class="avatar">SV</div>
-          <div class="profile-info"><p class="profile-name">Adv. Sunita Verma</p><p class="profile-role">High Court Advocate</p></div>
-          <span class="badge-status active">Active</span>
-        </div>
-        <div class="profile-meta">
-          <div class="meta-item">📍 Lucknow</div><div class="meta-item">⚖️ Family Law</div>
-          <div class="meta-item">🕐 12 years</div><div class="meta-item">🏛️ Bar Enrolled</div>
-        </div>
-      </div>
-      <div class="profile-card">
-        <div class="profile-top">
-          <div class="avatar">AN</div>
-          <div class="profile-info"><p class="profile-name">Adv. Arjun Nair</p><p class="profile-role">Junior Advocate</p></div>
-          <span class="badge-status pending">Pending</span>
-        </div>
-        <div class="profile-meta">
-          <div class="meta-item">📍 Chennai</div><div class="meta-item">⚖️ Civil Law</div>
-          <div class="meta-item">🕐 1 year</div><div class="meta-item">🏛️ Bar Enrolled</div>
-        </div>
+    <div class="members-toolbar">
+      <div class="member-summary" id="memberSummary">Loading members...</div>
+      <div class="member-search">
+        <input id="memberSearch" type="search" placeholder="Search members by name or username" oninput="filterMembers()" />
       </div>
     </div>
+    <div class="profiles-grid" id="profilesGrid"></div>
+    <div id="membersStatus" class="status-text">Fetching latest AAFWS members...</div>
     <div class="add-cta">
       <p>Want to appear in the member directory?</p>
       <button class="btn-outline-navy" onclick="openForm()">Submit Membership Application</button>

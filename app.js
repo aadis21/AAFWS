@@ -16,6 +16,18 @@ const DEMANDS=[
   {cat:"Policy & Institutional Reforms",icon:"📋",items:["Stronger advocate welfare boards","Increased government funding","Young advocate representation in policy","Regular surveys on working conditions","Independent ombudsman for advocates"]}
 ];
 
+const BACKEND_HOST = 'http://localhost:5000';
+const FRONTEND_HOST = window.location.origin;
+const API_BASE = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? BACKEND_HOST
+  : FRONTEND_HOST;
+const membersState = {
+  all: [],
+  filtered: [],
+  loading: false,
+  query: ''
+};
+
 // ── BUILD ACCORDION ───────────────────
 function buildAccordion(){
   const el=document.getElementById('accordion');
@@ -49,6 +61,7 @@ function showTab(id,el){
   if(el)el.classList.add('active');
   else{const lk=document.querySelector('.nav-link[onclick*=\"'+id+'\"]');if(lk)lk.classList.add('active');}
   if(id==='demands')buildAccordion();
+  if(id==='members')loadMembers();
   closeNav();
 }
 function showDemand(i){
@@ -56,11 +69,130 @@ function showDemand(i){
   setTimeout(()=>toggleAcc(i),60);
 }
 
+async function parseJsonSafe(response) {
+  const body = await response.text();
+  if (!body) return null;
+  try {
+    return JSON.parse(body);
+  } catch (error) {
+    console.error('JSON parse failed:', body, error);
+    throw new Error('Invalid JSON response from server');
+  }
+}
+
+async function loadMembers(forceReload = false) {
+  const grid = document.getElementById('profilesGrid');
+  const summary = document.getElementById('memberSummary');
+  const status = document.getElementById('membersStatus');
+  if (!grid || !summary || !status) return;
+  if (membersState.loading && !forceReload) return;
+  membersState.loading = true;
+  summary.textContent = 'Loading members...';
+  status.innerHTML = '<div class="spinner"></div>';
+  grid.innerHTML = '';
+
+  try {
+    const response = await fetch(`${API_BASE}/api/members`);
+    if (!response.ok) {
+      const errorData = await parseJsonSafe(response).catch(() => null);
+      throw new Error((errorData && errorData.message) || `Unable to load members (${response.status})`);
+    }
+
+    const data = await parseJsonSafe(response);
+    if (!data || !Array.isArray(data.members)) {
+      throw new Error('Invalid response from server');
+    }
+
+    membersState.all = data.members;
+    membersState.filtered = [...membersState.all];
+    renderMembers();
+  } catch (error) {
+    summary.textContent = 'Member list unavailable';
+    status.textContent = error.message || 'Unable to load member profiles.';
+  } finally {
+    membersState.loading = false;
+  }
+}
+
+function filterMembers() {
+  const query = document.getElementById('memberSearch')?.value.trim().toLowerCase() || '';
+  membersState.query = query;
+  membersState.filtered = membersState.all.filter((member) => {
+    const username = getUsername(member).toLowerCase();
+    return member.fullName.toLowerCase().includes(query) || username.includes(query);
+  });
+  renderMembers();
+}
+
+function renderMembers() {
+  const grid = document.getElementById('profilesGrid');
+  const summary = document.getElementById('memberSummary');
+  const status = document.getElementById('membersStatus');
+  if (!grid || !summary || !status) return;
+  const members = membersState.filtered;
+  summary.textContent = `Total members: ${membersState.all.length}`;
+  if (membersState.loading) {
+    status.innerHTML = '<div class="spinner"></div>';
+    return;
+  }
+  if (members.length === 0) {
+    grid.innerHTML = '';
+    status.textContent = membersState.all.length === 0 ? 'No members found.' : 'No matching members.';
+    return;
+  }
+  status.textContent = '';
+  grid.innerHTML = members.map(createMemberCard).join('');
+}
+
+function getUsername(member) {
+  if (member.barCouncilNo) {
+    return `adv-${member.barCouncilNo.replace(/\s+/g,'').toLowerCase()}`;
+  }
+  const nameParts = member.fullName.split(' ').filter(Boolean);
+  return nameParts.length > 1
+    ? `${nameParts[0].slice(0,1).toLowerCase()}${nameParts[nameParts.length-1].toLowerCase()}`
+    : member.fullName.toLowerCase().replace(/\s+/g,'');
+}
+
+function formatJoinDate(dateString) {
+  if (!dateString) return 'Unknown';
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', { month:'short', year:'numeric' }).format(date);
+}
+
+function createMemberCard(member) {
+  const initials = member.fullName.split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('');
+  const location = [member.city, member.state].filter(Boolean).join(', ') || 'Location not listed';
+  const username = getUsername(member);
+  return `
+    <div class="profile-card fade-in">
+      <div class="profile-top">
+        <div class="avatar">${initials || 'AA'}</div>
+        <div class="profile-info">
+          <p class="profile-name">${member.fullName}</p>
+          <p class="profile-role">${username}</p>
+        </div>
+        <span class="badge-status active">Member</span>
+      </div>
+      <div class="profile-meta">
+        <div class="meta-item">📍 ${location}</div>
+        <div class="meta-item">🗓️ Joined ${formatJoinDate(member.createdAt)}</div>
+        <div class="meta-item">🆔 ${member._id?.toString().slice(-6).toUpperCase()}</div>
+      </div>
+    </div>`;
+}
+
 // ── HAMBURGER ────────────────────────
 document.getElementById('hamburger').addEventListener('click',()=>{
   document.getElementById('navLinks').classList.toggle('open');
 });
 function closeNav(){document.getElementById('navLinks').classList.remove('open');}
+
+setInterval(() => {
+  if (document.getElementById('members')?.classList.contains('active')) {
+    loadMembers(true);
+  }
+}, 30000);
 
 // ── FORM ─────────────────────────────
 let formStep=1;const totalSteps=4;
@@ -189,13 +321,13 @@ async function submitForm(){
   renderFooter();
 
   try {
-    const response = await fetch('https://aawfs-backend.onrender.com/api/membership/apply', {
+    const response = await fetch(`${API_BASE}/api/membership/apply`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     });
 
-    const result = await response.json();
+    const result = await parseJsonSafe(response) || {};
     if(!response.ok){
       throw new Error(result.message || 'Submission failed. Please try again.');
     }
