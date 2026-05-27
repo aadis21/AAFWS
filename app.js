@@ -64,8 +64,10 @@ function closeNav(){document.getElementById('navLinks').classList.remove('open')
 
 // ── FORM ─────────────────────────────
 let formStep=1;const totalSteps=4;
-const formData={fullName:'',dob:'',gender:'',memberType:'',barCouncilNo:'',enrollmentYear:'',court:'',state:'',city:'',specialization:'',experience:'',seniorAdvocate:'',phone:'',email:'',address:'',pincode:'',nominee:'',relationship:'',declaration:false};
+const initialFormData={fullName:'',dob:'',gender:'',memberType:'',barCouncilNo:'',enrollmentYear:'',court:'',state:'',city:'',specialization:'',experience:'',seniorAdvocate:'',phone:'',email:'',address:'',pincode:'',nominee:'',relationship:'',declaration:false};
+const formData={...initialFormData};
 const formErrors={};
+let isSubmitting=false;
 
 function openForm(){formStep=1;renderForm();document.getElementById('formModal').style.display='flex';}
 function closeForm(){document.getElementById('formModal').style.display='none';}
@@ -159,8 +161,12 @@ function renderForm(){
 function renderFooter(){
   const f=document.getElementById('modalFooter');
   const back=formStep>1?`<button class="btn-back" onclick="prevStep()">← Back</button>`:'<div></div>';
-  const next=formStep<totalSteps?`<button class="btn-next" onclick="nextStep()">Next →</button>`:`<button class="btn-submit" onclick="submitForm()">Submit Application ✓</button>`;
-  f.innerHTML=back+next;
+  const submitLabel = isSubmitting ? 'Submitting...' : 'Submit Application ✓';
+  const submitDisabled = isSubmitting ? 'disabled' : '';
+  const next = formStep<totalSteps
+    ? `<button class="btn-next" onclick="nextStep()">Next →</button>`
+    : `<button class="btn-submit" ${submitDisabled} onclick="submitForm()">${submitLabel}</button>`;
+  f.innerHTML = back + next;
 }
 
 function validate(){
@@ -173,10 +179,37 @@ function validate(){
 }
 function nextStep(){if(validate()){formStep++;renderForm();}else renderForm();}
 function prevStep(){formStep--;renderForm();}
-function submitForm(){
-  if(validate()){
+async function submitForm(){
+  if(!validate()){
+    renderForm();
+    return;
+  }
+
+  isSubmitting=true;
+  renderFooter();
+
+  try {
+    const response = await fetch('https://aawfs-backend.onrender.com/api/membership/apply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const result = await response.json();
+    if(!response.ok){
+      throw new Error(result.message || 'Submission failed. Please try again.');
+    }
+
     closeForm();
-    document.getElementById('refNum').textContent='AAFWS-'+String(Date.now()).slice(-6);
-    document.getElementById('successModal').style.display='flex';
-  }else renderForm();
+    document.getElementById('refNum').textContent = result.referenceId || 'AAFWS-'+String(Date.now()).slice(-6);
+    document.getElementById('successModal').style.display = 'flex';
+    Object.assign(formData, initialFormData);
+    formStep = 1;
+    Object.keys(formErrors).forEach((key)=>delete formErrors[key]);
+  } catch (error) {
+    alert(error.message || 'Unable to submit application. Please try again.');
+  } finally {
+    isSubmitting=false;
+    renderFooter();
+  }
 }
