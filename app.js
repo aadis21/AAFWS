@@ -163,10 +163,17 @@ function createMemberCard(member) {
   const initials = (member.fullName || '').split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('');
   const location = [member.city, member.state].filter(Boolean).join(', ') || 'Location not listed';
   const username = getUsername(member);
+  
+  const avatarHtml = member.profileImage
+    ? `<div class="avatar" style="background:none; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+         <img src="${API_BASE}${member.profileImage}" alt="${member.fullName || 'Member'}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+       </div>`
+    : `<div class="avatar">${initials || 'AA'}</div>`;
+
   return `
     <div class="profile-card fade-in">
       <div class="profile-top">
-        <div class="avatar">${initials || 'AA'}</div>
+        ${avatarHtml}
         <div class="profile-info">
           <p class="profile-name">${member.fullName || 'Anonymous'}</p>
           <p class="profile-role">${username}</p>
@@ -226,6 +233,46 @@ function field(label,name,type='text',opts){
 }
 function fup(k,v){formData[k]=v;delete formErrors[k];}
 
+function handleImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+  if (!validTypes.includes(file.type)) {
+    formErrors.profileImage = 'Only JPG, JPEG, PNG, and WEBP image files are allowed!';
+    delete formData.profileImageFile;
+    delete formData.profileImagePreview;
+    renderForm();
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    formErrors.profileImage = 'Image size must be less than 5MB';
+    delete formData.profileImageFile;
+    delete formData.profileImagePreview;
+    renderForm();
+    return;
+  }
+
+  delete formErrors.profileImage;
+  formData.profileImageFile = file;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    formData.profileImagePreview = e.target.result;
+    renderForm();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeSelectedImage(event) {
+  if (event) event.preventDefault();
+  delete formData.profileImageFile;
+  delete formData.profileImagePreview;
+  delete formErrors.profileImage;
+  renderForm();
+}
+
 function renderForm(){
   renderStepBar();
   const b=document.getElementById('modalBody');
@@ -236,7 +283,22 @@ function renderForm(){
         ${field('Date of Birth','dob','date')}
         ${field('Gender','gender','text',['Male','Female','Other'])}
       </div>
-      ${field('Member Type','memberType','text',['Individual Advocate','Family Member','Junior Advocate','Senior Advocate'])}`;
+      ${field('Member Type','memberType','text',['Individual Advocate','Family Member','Junior Advocate','Senior Advocate'])}
+      <div class="field">
+        <label>Profile Image (Optional)</label>
+        <input type="file" id="profileImageInp" accept="image/png, image/jpeg, image/jpg, image/webp" onchange="handleImageSelect(event)" ${inp('profileImage')}>
+        ${formData.profileImagePreview 
+          ? `<div id="imagePreviewContainer" style="margin-top:10px; display:flex; align-items:center; gap:10px;">
+               <img id="imagePreview" src="${formData.profileImagePreview}" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 2px solid #DDD8CC;">
+               <button type="button" class="btn-back" style="padding: 4px 8px; font-size:12px; margin:0;" onclick="removeSelectedImage(event)">Remove Image</button>
+             </div>`
+          : `<div id="imagePreviewContainer" style="margin-top:10px; display:none; align-items:center; gap:10px;">
+               <img id="imagePreview" src="" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border: 2px solid #DDD8CC;">
+               <button type="button" class="btn-back" style="padding: 4px 8px; font-size:12px; margin:0;" onclick="removeSelectedImage(event)">Remove Image</button>
+             </div>`
+        }
+        ${formErrors.profileImage?`<p class="field-err">${formErrors.profileImage}</p>`:''}
+      </div>`;
   } else if(formStep===2){
     b.innerHTML=`<p class="section-sub">Professional Details</p>
       ${field('Bar Council Enrollment Number','barCouncilNo')}
@@ -320,10 +382,20 @@ async function submitForm(){
   renderFooter();
 
   try {
+    const sendData = new FormData();
+    Object.keys(formData).forEach(key => {
+      if (key !== 'profileImagePreview' && key !== 'profileImageFile') {
+        sendData.append(key, formData[key]);
+      }
+    });
+
+    if (formData.profileImageFile) {
+      sendData.append('profileImage', formData.profileImageFile);
+    }
+
     const response = await fetch(`${API_BASE}/api/membership/apply`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      body: sendData
     });
 
     const result = await parseJsonSafe(response) || {};
@@ -334,6 +406,11 @@ async function submitForm(){
     closeForm();
     document.getElementById('refNum').textContent = result.referenceId || 'AAFWS-'+String(Date.now()).slice(-6);
     document.getElementById('successModal').style.display = 'flex';
+    
+    // Clear formData fully
+    for (const key in formData) {
+      delete formData[key];
+    }
     Object.assign(formData, initialFormData);
     formStep = 1;
     Object.keys(formErrors).forEach((key)=>delete formErrors[key]);
