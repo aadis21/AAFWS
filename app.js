@@ -16,11 +16,7 @@ const DEMANDS=[
   {cat:"Policy & Institutional Reforms",icon:"📋",items:["Stronger advocate welfare boards","Increased government funding","Young advocate representation in policy","Regular surveys on working conditions","Independent ombudsman for advocates"]}
 ];
 
-const BACKEND_HOST = 'http://localhost:5000';
-const FRONTEND_HOST = window.location.origin;
-const API_BASE = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? BACKEND_HOST
-  : FRONTEND_HOST;
+const API_BASE = 'https://aawfs-backend.onrender.com';
 const membersState = {
   all: [],
   filtered: [],
