@@ -101,12 +101,14 @@ async function loadMembers(forceReload = false) {
 
     membersState.all = data.members;
     membersState.filtered = [...membersState.all];
+    membersState.loading = false;
     renderMembers();
   } catch (error) {
+    console.error('Error loading members:', error);
+    membersState.loading = false;
+    grid.innerHTML = '';
     summary.textContent = 'Member list unavailable';
     status.textContent = error.message || 'Unable to load member profiles.';
-  } finally {
-    membersState.loading = false;
   }
 }
 
@@ -144,10 +146,11 @@ function getUsername(member) {
   if (member.barCouncilNo) {
     return `adv-${member.barCouncilNo.replace(/\s+/g,'').toLowerCase()}`;
   }
-  const nameParts = member.fullName.split(' ').filter(Boolean);
+  const name = member.fullName || '';
+  const nameParts = name.split(' ').filter(Boolean);
   return nameParts.length > 1
     ? `${nameParts[0].slice(0,1).toLowerCase()}${nameParts[nameParts.length-1].toLowerCase()}`
-    : member.fullName.toLowerCase().replace(/\s+/g,'');
+    : name.toLowerCase().replace(/\s+/g,'');
 }
 
 function formatJoinDate(dateString) {
@@ -157,7 +160,7 @@ function formatJoinDate(dateString) {
 }
 
 function createMemberCard(member) {
-  const initials = member.fullName.split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('');
+  const initials = (member.fullName || '').split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('');
   const location = [member.city, member.state].filter(Boolean).join(', ') || 'Location not listed';
   const username = getUsername(member);
   return `
@@ -165,7 +168,7 @@ function createMemberCard(member) {
       <div class="profile-top">
         <div class="avatar">${initials || 'AA'}</div>
         <div class="profile-info">
-          <p class="profile-name">${member.fullName}</p>
+          <p class="profile-name">${member.fullName || 'Anonymous'}</p>
           <p class="profile-role">${username}</p>
         </div>
         <span class="badge-status active">Member</span>
@@ -334,6 +337,9 @@ async function submitForm(){
     Object.assign(formData, initialFormData);
     formStep = 1;
     Object.keys(formErrors).forEach((key)=>delete formErrors[key]);
+    
+    // Auto-refresh the member list after successful registration
+    loadMembers(true);
   } catch (error) {
     alert(error.message || 'Unable to submit application. Please try again.');
   } finally {
