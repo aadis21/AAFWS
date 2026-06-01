@@ -2,7 +2,9 @@
  * AAFWS Shared Admin API Utility
  */
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+  ? 'http://localhost:5000/api'
+  : 'https://aawfs-backend.onrender.com/api';
 
 // Redirect to login if not authenticated (exclude the login page itself)
 function checkAuth() {
