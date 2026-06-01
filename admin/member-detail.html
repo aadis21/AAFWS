@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAFWS Member Details & ID Card</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CDNs for client-side PDF + Image capture -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">AAFWS<span>.</span></div>
+      </div>
+      <nav class="sidebar-menu">
+        <ul>
+          <li class="sidebar-item">
+            <a href="dashboard.html" class="sidebar-link">
+              <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="members.html" class="sidebar-link active">
+              <i class="fa-solid fa-users"></i> Members
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="donations.html" class="sidebar-link">
+              <i class="fa-solid fa-hand-holding-dollar"></i> Donations
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="settings.html" class="sidebar-link">
+              <i class="fa-solid fa-gears"></i> Settings
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="notifications.html" class="sidebar-link">
+              <i class="fa-solid fa-bell"></i> Notifications
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="admin-profile">
+          <div class="admin-avatar" id="admin-profile-avatar">A</div>
+          <div class="admin-info">
+            <span class="admin-name" id="admin-profile-name">Admin User</span>
+            <span class="admin-role">System Administrator</span>
+          </div>
+        </div>
+        <button onclick="logout()" class="btn btn-danger btn-sm btn-block">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="page-title">
+          <h1 id="member-header-name">Member Profile</h1>
+          <p id="member-header-id">ID: -</p>
+        </div>
+        <div class="header-actions">
+          <a href="members.html" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left"></i> Back to List
+          </a>
+        </div>
+      </header>
+
+      <!-- Details & ID Card Panel Grid -->
+      <div class="dashboard-grid">
+        
+        <!-- Member Details Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Personal & Professional Information</h2>
+            <button onclick="openEditModal()" class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-user-gear"></i> Edit Details
+            </button>
+          </div>
+          
+          <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap;">
+            <img id="detail-profile-img" src="" alt="Avatar" style="width: 120px; height: 140px; border-radius: 8px; object-fit: cover; border: 2.5px solid var(--gold); background-color: var(--bg-light);">
+            <div style="flex-grow: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+              <div>
+                <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Full Name</strong>
+                <span id="detail-name" style="font-weight: 600;">-</span>
+              </div>
+              <div>
+                <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">DOB</strong>
+                <span id="detail-dob">-</span>
+              </div>
+              <div>
+                <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Gender</strong>
+                <span id="detail-gender">-</span>
+              </div>
+              <div>
+                <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Membership ID</strong>
+                <code id="detail-id" style="font-weight: 700; color: var(--primary-navy); font-size: 1rem;">-</code>
+              </div>
+              <div>
+                <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Email</strong>
+                <span id="detail-email">-</span>
+              </div>
+              <div>
+                <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Phone</strong>
+                <span id="detail-phone">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Bar Council Number</strong>
+              <span id="detail-bar">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Enrollment Year</strong>
+              <span id="detail-enroll">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Court of Practice</strong>
+              <span id="detail-court">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Member Type</strong>
+              <span id="detail-type">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">State</strong>
+              <span id="detail-state">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">City</strong>
+              <span id="detail-city">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Blood Group</strong>
+              <span id="detail-blood">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Emergency Contact</strong>
+              <span id="detail-emergency">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Specialization</strong>
+              <span id="detail-specialization">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Years of Experience</strong>
+              <span id="detail-experience">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Senior Advocate Status</strong>
+              <span id="detail-senior">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Account Status</strong>
+              <span id="detail-status">-</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Residential Address</strong>
+              <span id="detail-address">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Pincode</strong>
+              <span id="detail-pincode">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Nominee Name</strong>
+              <span id="detail-nominee">-</span>
+            </div>
+            <div>
+              <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Relationship with Nominee</strong>
+              <span id="detail-relationship">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ID Card Preview/Generator Card -->
+        <div class="card" style="display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+          <div class="card-header" style="width: 100%;">
+            <h2>Membership ID Card</h2>
+          </div>
+
+          <div class="id-card-generator-wrapper">
+            <div class="id-card-tabs">
+              <button onclick="switchCardSide('front')" id="tab-front" class="tab-btn active">Front Side</button>
+              <button onclick="switchCardSide('back')" id="tab-back" class="tab-btn">Back Side</button>
+            </div>
+
+            <!-- Front Card Preview -->
+            <div class="id-card-preview" id="id-card-front-view">
+              <div class="id-card-header">
+                <div class="id-card-logo-text">AAFWS<span>.</span></div>
+                <div class="id-card-subtext">All India Advocate Federation</div>
+              </div>
+              <div class="id-card-body">
+                <div class="id-card-photo-frame">
+                  <img id="id-card-front-photo" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="Photo">
+                </div>
+                <div class="id-card-name" id="id-card-front-name">Full Name</div>
+                <div class="id-card-role" id="id-card-front-role">MEMBER</div>
+                <div class="id-card-details">
+                  <div class="id-card-row">
+                    <span class="id-card-label">Membership ID:</span>
+                    <span class="id-card-val" id="id-card-front-id">-</span>
+                  </div>
+                  <div class="id-card-row">
+                    <span class="id-card-label">Phone:</span>
+                    <span class="id-card-val" id="id-card-front-phone">-</span>
+                  </div>
+                  <div class="id-card-row">
+                    <span class="id-card-label">Blood Group:</span>
+                    <span class="id-card-val" id="id-card-front-blood">-</span>
+                  </div>
+                  <div class="id-card-row">
+                    <span class="id-card-label">State:</span>
+                    <span class="id-card-val" id="id-card-front-state">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Back Card Preview (Hidden by CSS initially) -->
+            <div class="id-card-preview" id="id-card-back-view" style="display: none;">
+              <div class="id-card-back">
+                <div class="id-card-back-title">MEMBERSHIP VERIFICATION</div>
+                <div class="id-card-qr-container">
+                  <img id="id-card-back-qr" src="" alt="Verification QR">
+                </div>
+                <div style="font-size: 0.72rem; width: 100%;">
+                  <div class="id-card-row"><span class="id-card-label">DOB:</span><span class="id-card-val" id="id-card-back-dob">-</span></div>
+                  <div class="id-card-row"><span class="id-card-label">Bar No:</span><span class="id-card-val" id="id-card-back-bar">-</span></div>
+                  <div class="id-card-row"><span class="id-card-label">Enroll Year:</span><span class="id-card-val" id="id-card-back-enroll">-</span></div>
+                  <div class="id-card-row"><span class="id-card-label">Emergency No:</span><span class="id-card-val" id="id-card-back-emergency">-</span></div>
+                </div>
+                <div class="id-card-instructions">
+                  This card is property of AAFWS. Scan QR to verify status.
+                </div>
+                <div class="id-card-signature-area">
+                  <div class="id-card-signature">
+                    <div class="id-card-signature-line"></div>
+                    Member Sign
+                  </div>
+                  <div class="id-card-signature">
+                    <div class="id-card-signature-line"></div>
+                    Secretary Sign
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px; width: 100%; justify-content: center;">
+            <button onclick="triggerPdfDownload()" class="btn btn-primary" style="flex: 1; max-width: 160px;">
+              <i class="fa-solid fa-file-pdf"></i> Download PDF
+            </button>
+            <button onclick="triggerPngDownload()" class="btn btn-gold" style="flex: 1; max-width: 160px;">
+              <i class="fa-solid fa-file-image"></i> Download PNG
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Edit Details Modal -->
+  <div id="edit-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Member Information</h3>
+        <button onclick="closeEditModal()" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-member-form">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
+            <div class="form-group">
+              <label class="form-label" for="edit-fullName">Full Name</label>
+              <input type="text" id="edit-fullName" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-dob">DOB</label>
+              <input type="date" id="edit-dob" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-gender">Gender</label>
+              <select id="edit-gender" class="form-control" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-email">Email</label>
+              <input type="email" id="edit-email" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-phone">Phone</label>
+              <input type="text" id="edit-phone" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-barCouncilNo">Bar Council Number</label>
+              <input type="text" id="edit-barCouncilNo" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-enrollmentYear">Enrollment Year</label>
+              <input type="text" id="edit-enrollmentYear" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-court">Court of Practice</label>
+              <input type="text" id="edit-court" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-memberType">Member Type</label>
+              <select id="edit-memberType" class="form-control">
+                <option value="Life Member">Life Member</option>
+                <option value="Associate Member">Associate Member</option>
+                <option value="Student Member">Student Member</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-bloodGroup">Blood Group</label>
+              <input type="text" id="edit-bloodGroup" class="form-control" placeholder="e.g. O+">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-emergencyContact">Emergency Contact</label>
+              <input type="text" id="edit-emergencyContact" class="form-control" placeholder="Emergency Mobile">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-state">State</label>
+              <input type="text" id="edit-state" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-city">City</label>
+              <input type="text" id="edit-city" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-specialization">Specialization</label>
+              <input type="text" id="edit-specialization" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-experience">Experience (Years)</label>
+              <input type="text" id="edit-experience" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-seniorAdvocate">Senior Advocate</label>
+              <select id="edit-seniorAdvocate" class="form-control">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style="border-top: 1px solid var(--border-color); margin-top: 15px; padding-top: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
+            <div class="form-group">
+              <label class="form-label" for="edit-address">Residential Address</label>
+              <textarea id="edit-address" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-pincode">Pincode</label>
+              <input type="text" id="edit-pincode" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-nominee">Nominee Name</label>
+              <input type="text" id="edit-nominee" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-relationship">Relationship</label>
+              <input type="text" id="edit-relationship" class="form-control">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+        <button onclick="saveEdit()" class="btn btn-primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script src="js/id-card.js"></script>
+  <script>
+    let memberData = null;
+    const urlParams = new URLSearchParams(window.location.search);
+    const memberId = urlParams.get('id');
+
+    if (!memberId) {
+      showToast('No member ID specified.', 'error');
+      setTimeout(() => { window.location.href = 'members.html'; }, 2000);
+    }
+
+    async function loadMemberDetail() {
+      try {
+        const res = await apiRequest(`/admin/members/${memberId}`);
+        if (res.success) {
+          memberData = res.data;
+          renderProfileData(memberData);
+          renderIDCard(memberData);
+        }
+      } catch (err) {
+        showToast('Failed to load member profile details.', 'error');
+      }
+    }
+
+    function renderProfileData(member) {
+      document.getElementById('member-header-name').textContent = member.fullName;
+      document.getElementById('member-header-id').textContent = `ID: ${member.membershipId || 'Pending'}`;
+      
+      const pimg = document.getElementById('detail-profile-img');
+      pimg.src = member.profileImage || '../uploads/profile-images/default-avatar.png';
+      pimg.onerror = () => { pimg.src = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; };
+
+      document.getElementById('detail-name').textContent = member.fullName;
+      document.getElementById('detail-dob').textContent = member.dob;
+      document.getElementById('detail-gender').textContent = member.gender;
+      document.getElementById('detail-id').textContent = member.membershipId || 'PENDING SEEDING';
+      document.getElementById('detail-email').textContent = member.email;
+      document.getElementById('detail-phone').textContent = member.phone;
+
+      document.getElementById('detail-bar').textContent = member.barCouncilNo;
+      document.getElementById('detail-enroll').textContent = member.enrollmentYear;
+      document.getElementById('detail-court').textContent = member.court;
+      document.getElementById('detail-type').textContent = member.memberType || 'N/A';
+      document.getElementById('detail-state').textContent = member.state;
+      document.getElementById('detail-city').textContent = member.city || 'N/A';
+      document.getElementById('detail-blood').textContent = member.bloodGroup || 'N/A';
+      document.getElementById('detail-emergency').textContent = member.emergencyContact || 'N/A';
+      document.getElementById('detail-specialization').textContent = member.specialization || 'N/A';
+      document.getElementById('detail-experience').textContent = member.experience || 'N/A';
+      document.getElementById('detail-senior').textContent = member.seniorAdvocate || 'N/A';
+      
+      const statusSpan = document.getElementById('detail-status');
+      if (member.isActive) {
+        statusSpan.innerHTML = '<span class="badge badge-active">Active</span>';
+      } else {
+        statusSpan.innerHTML = '<span class="badge badge-inactive">Inactive</span>';
+      }
+
+      document.getElementById('detail-address').textContent = member.address || 'N/A';
+      document.getElementById('detail-pincode').textContent = member.pincode || 'N/A';
+      document.getElementById('detail-nominee').textContent = member.nominee || 'N/A';
+      document.getElementById('detail-relationship').textContent = member.relationship || 'N/A';
+    }
+
+    // Modal Operations
+    function openEditModal() {
+      if (!memberData) return;
+      
+      // Populate fields
+      const fields = [
+        'fullName', 'dob', 'gender', 'email', 'phone', 'barCouncilNo',
+        'enrollmentYear', 'court', 'memberType', 'bloodGroup', 'emergencyContact',
+        'state', 'city', 'specialization', 'experience', 'seniorAdvocate',
+        'address', 'pincode', 'nominee', 'relationship'
+      ];
+      
+      fields.forEach(field => {
+        const input = document.getElementById(`edit-${field}`);
+        if (input) {
+          input.value = memberData[field] || '';
+        }
+      });
+
+      document.getElementById('edit-modal').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.remove('active');
+    }
+
+    async function saveEdit() {
+      const fields = [
+        'fullName', 'dob', 'gender', 'email', 'phone', 'barCouncilNo',
+        'enrollmentYear', 'court', 'memberType', 'bloodGroup', 'emergencyContact',
+        'state', 'city', 'specialization', 'experience', 'seniorAdvocate',
+        'address', 'pincode', 'nominee', 'relationship'
+      ];
+
+      const bodyData = {};
+      fields.forEach(field => {
+        const input = document.getElementById(`edit-${field}`);
+        if (input) {
+          bodyData[field] = input.value;
+        }
+      });
+
+      try {
+        const res = await apiRequest(`/admin/members/${memberId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(bodyData)
+        });
+
+        if (res.success) {
+          showToast('Member profile updated successfully.', 'success');
+          closeEditModal();
+          loadMemberDetail(); // reload detail
+        }
+      } catch (err) {
+        showToast('Failed to save profile: ' + err.message, 'error');
+      }
+    }
+
+    // Card View Toggle Side
+    function switchCardSide(side) {
+      const frontCard = document.getElementById('id-card-front-view');
+      const backCard = document.getElementById('id-card-back-view');
+      const tabFront = document.getElementById('tab-front');
+      const tabBack = document.getElementById('tab-back');
+
+      if (side === 'front') {
+        frontCard.style.display = 'block';
+        backCard.style.display = 'none';
+        tabFront.classList.add('active');
+        tabBack.classList.remove('active');
+      } else {
+        frontCard.style.display = 'none';
+        backCard.style.display = 'block';
+        tabFront.classList.remove('active');
+        tabBack.classList.add('active');
+      }
+    }
+
+    // Trigger PDF Export from id-card.js
+    function triggerPdfDownload() {
+      if (!memberData) return;
+      downloadCardAsPDF(memberData);
+    }
+
+    // Trigger PNG Export from id-card.js
+    function triggerPngDownload() {
+      if (!memberData) return;
+      const frontCard = document.getElementById('id-card-front-view');
+      
+      let side = 'front';
+      let elementId = 'id-card-front-view';
+      
+      if (frontCard.style.display === 'none') {
+        side = 'back';
+        elementId = 'id-card-back-view';
+      }
+
+      downloadCardAsPNG(elementId, `ID-Card-${memberData.membershipId || 'Member'}-${side}`);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadMemberDetail);
+  </script>
+</body>
+</html>

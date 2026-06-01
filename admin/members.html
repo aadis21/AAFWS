@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAFWS Admin Members Management</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">AAFWS<span>.</span></div>
+      </div>
+      <nav class="sidebar-menu">
+        <ul>
+          <li class="sidebar-item">
+            <a href="dashboard.html" class="sidebar-link">
+              <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="members.html" class="sidebar-link active">
+              <i class="fa-solid fa-users"></i> Members
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="donations.html" class="sidebar-link">
+              <i class="fa-solid fa-hand-holding-dollar"></i> Donations
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="settings.html" class="sidebar-link">
+              <i class="fa-solid fa-gears"></i> Settings
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="notifications.html" class="sidebar-link">
+              <i class="fa-solid fa-bell"></i> Notifications
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="admin-profile">
+          <div class="admin-avatar" id="admin-profile-avatar">A</div>
+          <div class="admin-info">
+            <span class="admin-name" id="admin-profile-name">Admin User</span>
+            <span class="admin-role">System Administrator</span>
+          </div>
+        </div>
+        <button onclick="logout()" class="btn btn-danger btn-sm btn-block">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="page-title">
+          <h1>Members Directory</h1>
+          <p>Manage and verify registered members of AAFWS</p>
+        </div>
+        <div class="header-actions">
+          <div class="notification-bell" onclick="window.location.href='notifications.html'">
+            <i class="fa-solid fa-bell fa-lg"></i>
+            <span class="notification-badge" id="notification-badge-count" style="display: none;">0</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Bulk Actions & Exports -->
+      <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: flex-end;">
+        <button onclick="downloadExport('excel')" class="btn btn-secondary btn-sm" style="color: #1E7E34; border-color: #28A745;">
+          <i class="fa-solid fa-file-excel"></i> Export Excel
+        </button>
+        <button onclick="downloadExport('csv')" class="btn btn-secondary btn-sm" style="color: #17A2B8; border-color: #17A2B8;">
+          <i class="fa-solid fa-file-csv"></i> Export CSV
+        </button>
+        <button onclick="downloadExport('pdf')" class="btn btn-secondary btn-sm" style="color: #DC3545; border-color: #DC3545;">
+          <i class="fa-solid fa-file-pdf"></i> Export PDF Report
+        </button>
+      </div>
+
+      <!-- Filters & Search Bar -->
+      <section class="filter-bar">
+        <div class="search-input-group">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="search-input" class="form-control" placeholder="Search by name, ID, phone, city..." oninput="handleSearch()">
+        </div>
+        
+        <div class="filter-group">
+          <select id="filter-state" class="form-control" style="width: auto; padding: 8px 12px;" onchange="handleFilters()">
+            <option value="">All States</option>
+            <option value="Andhra Pradesh">Andhra Pradesh</option>
+            <option value="Telangana">Telangana</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Delhi">Delhi</option>
+            <!-- Add other options as needed -->
+          </select>
+
+          <select id="filter-type" class="form-control" style="width: auto; padding: 8px 12px;" onchange="handleFilters()">
+            <option value="">All Types</option>
+            <option value="Life Member">Life Member</option>
+            <option value="Associate Member">Associate Member</option>
+            <option value="Student Member">Student Member</option>
+          </select>
+
+          <select id="filter-status" class="form-control" style="width: auto; padding: 8px 12px;" onchange="handleFilters()">
+            <option value="">All Status</option>
+            <option value="true">Active Only</option>
+            <option value="false">Inactive Only</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Members Table Card -->
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Member Name</th>
+                <th>Membership ID</th>
+                <th>Bar Council No</th>
+                <th>Court</th>
+                <th>State</th>
+                <th>Status</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="members-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading members directory...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrapper">
+          <div class="pagination-info" id="pagination-info">
+            Showing 0 to 0 of 0 entries
+          </div>
+          <div class="pagination-buttons" id="pagination-buttons">
+            <!-- Dynamic pagination buttons -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    let currentPage = 1;
+    let searchVal = '';
+    let filterState = '';
+    let filterType = '';
+    let filterStatus = '';
+
+    async function loadMembers() {
+      try {
+        const queryParams = new URLSearchParams({
+          page: currentPage,
+          limit: 10,
+          search: searchVal,
+          state: filterState,
+          memberType: filterType,
+          isActive: filterStatus
+        });
+
+        const res = await apiRequest(`/admin/members?${queryParams.toString()}`);
+        if (res.success) {
+          renderMembersTable(res.data);
+          renderPagination(res.pagination);
+        }
+      } catch (err) {
+        showToast('Failed to retrieve members directory.', 'error');
+      }
+    }
+
+    function renderMembersTable(members) {
+      const tbody = document.getElementById('members-table-body');
+      tbody.innerHTML = '';
+
+      if (members.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No members match the filter criteria.</td></tr>`;
+        return;
+      }
+
+      members.forEach(member => {
+        let avatarHtml = '';
+        if (member.profileImage) {
+          avatarHtml = `<img src="${member.profileImage}" class="member-img" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'member-initials\\'>${member.fullName.charAt(0)}</div>'">`;
+        } else {
+          avatarHtml = `<div class="member-initials">${member.fullName.charAt(0).toUpperCase()}</div>`;
+        }
+
+        const statusBadge = member.isActive 
+          ? `<span class="badge badge-active">Active</span>`
+          : `<span class="badge badge-inactive">Inactive</span>`;
+
+        const statusIcon = member.isActive ? 'fa-user-slash' : 'fa-user-check';
+        const statusBtnText = member.isActive ? 'Deactivate' : 'Activate';
+        const statusBtnClass = member.isActive ? 'btn-secondary' : 'btn-success';
+
+        tbody.innerHTML += `
+          <tr>
+            <td>
+              <div class="member-row">
+                ${avatarHtml}
+                <div>
+                  <strong>${member.fullName}</strong>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">${member.email} | ${member.phone}</div>
+                </div>
+              </div>
+            </td>
+            <td><code style="font-weight: 700; color: var(--primary-navy);">${member.membershipId || 'Pending'}</code></td>
+            <td>${member.barCouncilNo}</td>
+            <td>${member.court}</td>
+            <td>${member.state}</td>
+            <td>${statusBadge}</td>
+            <td style="text-align: right;">
+              <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                <a href="member-detail.html?id=${member._id}" class="btn btn-secondary btn-sm" title="View details & generate ID Card">
+                  <i class="fa-solid fa-eye"></i> View
+                </a>
+                <button onclick="toggleStatus('${member._id}')" class="btn ${statusBtnClass} btn-sm" title="${statusBtnText} member account">
+                  <i class="fa-solid ${statusIcon}"></i>
+                </button>
+                <button onclick="deleteMember('${member._id}')" class="btn btn-danger btn-sm" title="Delete member permanently">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderPagination(pagination) {
+      const info = document.getElementById('pagination-info');
+      const buttons = document.getElementById('pagination-buttons');
+      
+      const startEntry = (pagination.page - 1) * pagination.limit + 1;
+      const endEntry = Math.min(pagination.page * pagination.limit, pagination.total);
+
+      info.textContent = pagination.total > 0 
+        ? `Showing ${startEntry} to ${endEntry} of ${pagination.total} entries`
+        : `Showing 0 to 0 of 0 entries`;
+
+      buttons.innerHTML = '';
+
+      // Prev Button
+      const prevDisabled = pagination.page === 1 ? 'disabled' : '';
+      buttons.innerHTML += `<button class="btn btn-secondary btn-sm" ${prevDisabled} onclick="changePage(${pagination.page - 1})"><i class="fa-solid fa-chevron-left"></i></button>`;
+
+      // Page Numbers
+      for (let i = 1; i <= pagination.pages; i++) {
+        const activeClass = i === pagination.page ? 'btn-primary' : 'btn-secondary';
+        buttons.innerHTML += `<button class="btn ${activeClass} btn-sm" onclick="changePage(${i})">${i}</button>`;
+      }
+
+      // Next Button
+      const nextDisabled = pagination.page === pagination.pages || pagination.pages === 0 ? 'disabled' : '';
+      buttons.innerHTML += `<button class="btn btn-secondary btn-sm" ${nextDisabled} onclick="changePage(${pagination.page + 1})"><i class="fa-solid fa-chevron-right"></i></button>`;
+    }
+
+    function changePage(page) {
+      currentPage = page;
+      loadMembers();
+    }
+
+    // Debounce timer for search inputs
+    let searchDebounceTimer;
+    function handleSearch() {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        searchVal = document.getElementById('search-input').value;
+        currentPage = 1;
+        loadMembers();
+      }, 300);
+    }
+
+    function handleFilters() {
+      filterState = document.getElementById('filter-state').value;
+      filterType = document.getElementById('filter-type').value;
+      filterStatus = document.getElementById('filter-status').value;
+      currentPage = 1;
+      loadMembers();
+    }
+
+    async function toggleStatus(memberId) {
+      if (!confirm('Are you sure you want to change this member\'s active status?')) return;
+      try {
+        const res = await apiRequest(`/admin/members/${memberId}/toggle-status`, {
+          method: 'PATCH'
+        });
+        if (res.success) {
+          showToast(res.message, 'success');
+          loadMembers();
+        }
+      } catch (err) {
+        showToast('Failed to change status: ' + err.message, 'error');
+      }
+    }
+
+    async function deleteMember(memberId) {
+      if (!confirm('WARNING: Are you sure you want to permanently delete this member registration? This action cannot be undone!')) return;
+      try {
+        const res = await apiRequest(`/admin/members/${memberId}`, {
+          method: 'DELETE'
+        });
+        if (res.success) {
+          showToast(res.message, 'success');
+          loadMembers();
+        }
+      } catch (err) {
+        showToast('Failed to delete member: ' + err.message, 'error');
+      }
+    }
+
+    // Export Handler using AJAX blob download
+    async function downloadExport(format) {
+      try {
+        showToast(`Generating ${format.toUpperCase()} export...`, 'info');
+        const token = localStorage.getItem('admin_token');
+        const response = await fetch(`/api/admin/export/${format}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Export service encountered an error.');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        let ext = format;
+        if (format === 'excel') ext = 'xlsx';
+        
+        a.download = `aafws-members-${Date.now()}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        
+        showToast('Download complete.', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to download member file.', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadMembers);
+  </script>
+</body>
+</html>

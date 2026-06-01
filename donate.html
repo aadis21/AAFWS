@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAFWS – Support & Donate</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Custom Donate styles to supplement style.css with premium styling */
+    .donate-container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .donate-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 30px;
+      background: #FFFFFF;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      border: 1.5px solid #E5D5A5; /* Gold border tint */
+    }
+
+    @media (max-width: 768px) {
+      .donate-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .qr-side {
+      background: radial-gradient(circle at top, #14243B, #0B1421);
+      color: #FFFFFF;
+      padding: 40px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .qr-frame {
+      background: #FFFFFF;
+      padding: 12px;
+      border-radius: 12px;
+      margin: 20px 0;
+      border: 3px solid #D4AF37; /* Gold accent frame */
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .qr-frame img {
+      max-height: 200px;
+      max-width: 200px;
+      display: block;
+    }
+
+    .form-side {
+      padding: 40px 30px;
+      background-color: #FCFAF5;
+    }
+
+    .form-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1A2E40;
+      margin-bottom: 10px;
+    }
+
+    .form-desc {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    /* Success Screen Overlay */
+    .success-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(11, 20, 33, 0.85);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      backdrop-filter: blur(5px);
+    }
+
+    .success-overlay.active {
+      display: flex;
+    }
+
+    .success-box {
+      background: #FFFFFF;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 40px;
+      text-align: center;
+      border: 2px solid #D4AF37;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes zoomIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .check-circle {
+      width: 70px;
+      height: 70px;
+      background-color: #28A745;
+      color: #FFFFFF;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      margin: 0 auto 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="nav-logo" onclick="window.location.href='index.html'">AAFWS</div>
+        <div>
+          <p class="brand-title">Advocate &amp; Advocate Family</p>
+          <p class="brand-sub">WELFARE SOCIETY — AAFWS</p>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="index.html#home" class="nav-link">Home</a>
+        <a href="index.html#demands" class="nav-link">Our Demands</a>
+        <a href="index.html#members" class="nav-link">Members</a>
+        <a href="index.html#services" class="nav-link">Services</a>
+        <a href="index.html#about" class="nav-link">About</a>
+        <a href="donate.html" class="nav-link active">Donate</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="donate-container">
+    <div class="page-header" style="text-align: center; margin-bottom: 30px;">
+      <h2 style="font-size: 2.2rem; color: #111C24;">Support AAFWS Welfare Fund</h2>
+      <p style="color: #666; font-size: 1rem;">Your contributions help support advocate housing, medical security, and junior lawyers</p>
+    </div>
+
+    <div class="donate-grid">
+      <!-- QR Payment Details -->
+      <div class="qr-side">
+        <h3 style="color: #D4AF37; font-weight: 700; font-size: 1.3rem;">Scan QR to Pay</h3>
+        <p id="donation-instructions" style="font-size: 0.85rem; line-height: 1.6; margin-top: 10px; color: rgba(255,255,255,0.85);">
+          Please scan the QR code using any UPI app (GPay, PhonePe, Paytm) to transfer the amount, then enter the payment details in the form.
+        </p>
+        
+        <div class="qr-frame">
+          <img id="donation-qr-img" src="" alt="UPI Donation QR Code">
+        </div>
+        
+        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 10px;">
+          <p>Accepted apps: UPI, GPay, PhonePe, Paytm, BHIM</p>
+        </div>
+      </div>
+
+      <!-- Verification Form -->
+      <div class="form-side">
+        <h3 class="form-title">Payment Verification Form</h3>
+        <p class="form-desc">Once you transfer your support donation, upload the screenshot and fill in the UTR details below to submit proof.</p>
+
+        <form id="donation-form">
+          <div style="margin-bottom: 18px;">
+            <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; color:#1A2E40;">Your Full Name *</label>
+            <input type="text" id="donorName" required style="width:100%; padding:10px 14px; border:1.5px solid #DDD8CC; border-radius:8px; outline:none;" placeholder="Enter name">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 18px;">
+            <div>
+              <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; color:#1A2E40;">Mobile Number *</label>
+              <input type="tel" id="mobile" required style="width:100%; padding:10px 14px; border:1.5px solid #DDD8CC; border-radius:8px; outline:none;" placeholder="UPI-linked mobile">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; color:#1A2E40;">Email Address</label>
+              <input type="email" id="email" style="width:100%; padding:10px 14px; border:1.5px solid #DDD8CC; border-radius:8px; outline:none;" placeholder="For receipt copy">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 15px; margin-bottom: 18px;">
+            <div>
+              <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; color:#1A2E40;">Welfare Membership ID (Optional)</label>
+              <input type="text" id="membershipId" style="width:100%; padding:10px 14px; border:1.5px solid #DDD8CC; border-radius:8px; outline:none;" placeholder="e.g. AAFWS-2026-0001">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; color:#1A2E40;">Amount Contributed *</label>
+              <input type="number" id="amountINR" required min="1" style="width:100%; padding:10px 14px; border:1.5px solid #DDD8CC; border-radius:8px; outline:none;" placeholder="Amount in ₹">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 18px;">
+            <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; color:#1A2E40;">UTR / UPI Transaction ID *</label>
+            <input type="text" id="utrNumber" required style="width:100%; padding:10px 14px; border:1.5px solid #DDD8CC; border-radius:8px; outline:none;" placeholder="12-digit transaction ID">
+          </div>
+
+          <div style="margin-bottom: 25px;">
+            <label style="display:block; font-size:0.85rem; font-weight:600; margin-bottom:6px; color:#1A2E40;">Upload Payment Screenshot Proof *</label>
+            <input type="file" id="screenshot" required accept="image/*" style="width:100%; padding:8px; border:1.5px dashed #DDD8CC; border-radius:8px; background:#fff;">
+            <p style="font-size:0.75rem; color:#888; margin-top:4px;">Allowed formats: JPG, PNG, WEBP. Max size: 5MB</p>
+          </div>
+
+          <button type="submit" id="submit-btn" style="width:100%; padding:12px; background:#0B1421; color:#fff; border:none; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer;">
+            Submit Payment Verification Proof
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer" style="margin-top: 50px;">
+    <p>© 2025 Advocate &amp; Advocate Family Welfare Society (AAFWS) — All Rights Reserved</p>
+  </footer>
+
+  <!-- SUCCESS MODAL -->
+  <div id="successOverlay" class="success-overlay">
+    <div class="success-box">
+      <div class="check-circle">✓</div>
+      <h2 style="color: #1A2E40; margin-bottom: 10px;">Donation Registered!</h2>
+      <p style="color: #666; font-size: 0.95rem; line-height: 1.5; margin-bottom: 20px;">
+        Thank you for your generous contribution. We have registered your transaction <strong><span id="success-utr"></span></strong> for administrative review.
+      </p>
+      <p class="muted" style="font-size: 0.8rem; color:#999; margin-bottom: 25px;">
+        Our team will verify the payment against our bank ledger and update status shortly.
+      </p>
+      <button onclick="window.location.href='index.html'" style="padding: 10px 24px; background: #0B1421; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+        Return to Home Page
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Dynamically check backend URL base
+    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+      ? 'http://localhost:5000'
+      : ''; // served from the same server in production
+
+    async function loadDonationSettings() {
+      try {
+        // 1. Fetch QR Image
+        const qrRes = await fetch(`${API_BASE}/api/settings/donation-qr`);
+        const qrData = await qrRes.json();
+        const qrImg = document.getElementById('donation-qr-img');
+        if (qrData.qrPath) {
+          qrImg.src = `${API_BASE}${qrData.qrPath}`;
+        } else {
+          qrImg.src = 'https://placehold.co/200?text=No+Active+QR';
+        }
+
+        // 2. Fetch Instructions
+        const instRes = await fetch(`${API_BASE}/api/settings/donation-instructions`);
+        const instData = await instRes.json();
+        if (instData.instructions) {
+          document.getElementById('donation-instructions').textContent = instData.instructions;
+        }
+      } catch (err) {
+        console.error('Failed to load settings:', err);
+      }
+    }
+
+    document.getElementById('donation-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting Proof...';
+
+      const formData = new FormData();
+      formData.append('donorName', document.getElementById('donorName').value);
+      formData.append('mobile', document.getElementById('mobile').value);
+      formData.append('email', document.getElementById('email').value);
+      formData.append('membershipId', document.getElementById('membershipId').value);
+      formData.append('amountINR', document.getElementById('amountINR').value);
+      formData.append('utrNumber', document.getElementById('utrNumber').value);
+
+      const fileInput = document.getElementById('screenshot');
+      if (fileInput.files.length > 0) {
+        formData.append('screenshot', fileInput.files[0]);
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/donations`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const resData = await response.json();
+        if (!response.ok) {
+          throw new Error(resData.message || 'Donation submission failed.');
+        }
+
+        if (resData.success) {
+          document.getElementById('success-utr').textContent = resData.data.utrNumber;
+          document.getElementById('successOverlay').classList.add('active');
+          document.getElementById('donation-form').reset();
+        }
+      } catch (err) {
+        alert(err.message || 'An error occurred during submission.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Payment Verification Proof';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadDonationSettings);
+  </script>
+</body>
+</html>

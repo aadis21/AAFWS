@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAFWS Admin Donations Management</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">AAFWS<span>.</span></div>
+      </div>
+      <nav class="sidebar-menu">
+        <ul>
+          <li class="sidebar-item">
+            <a href="dashboard.html" class="sidebar-link">
+              <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="members.html" class="sidebar-link">
+              <i class="fa-solid fa-users"></i> Members
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="donations.html" class="sidebar-link active">
+              <i class="fa-solid fa-hand-holding-dollar"></i> Donations
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="settings.html" class="sidebar-link">
+              <i class="fa-solid fa-gears"></i> Settings
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="notifications.html" class="sidebar-link">
+              <i class="fa-solid fa-bell"></i> Notifications
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="admin-profile">
+          <div class="admin-avatar" id="admin-profile-avatar">A</div>
+          <div class="admin-info">
+            <span class="admin-name" id="admin-profile-name">Admin User</span>
+            <span class="admin-role">System Administrator</span>
+          </div>
+        </div>
+        <button onclick="logout()" class="btn btn-danger btn-sm btn-block">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="page-title">
+          <h1>Donation verifications</h1>
+          <p>Review and verify QR-based donation submissions</p>
+        </div>
+        <div class="header-actions">
+          <div class="notification-bell" onclick="window.location.href='notifications.html'">
+            <i class="fa-solid fa-bell fa-lg"></i>
+            <span class="notification-badge" id="notification-badge-count" style="display: none;">0</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Filter Controls -->
+      <section class="filter-bar">
+        <div class="search-input-group">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="donation-search" class="form-control" placeholder="Search by name, UTR, Member ID..." oninput="handleSearch()">
+        </div>
+
+        <div class="filter-group">
+          <select id="donation-status-filter" class="form-control" style="width: auto; padding: 8px 12px;" onchange="handleFilter()">
+            <option value="">All Donations</option>
+            <option value="pending">Pending Review</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Donations Table Card -->
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Donor Info</th>
+                <th>Member Link</th>
+                <th>Amount (INR)</th>
+                <th>UTR Number</th>
+                <th>Submitted Date</th>
+                <th>Status</th>
+                <th style="text-align: right;">Review Action</th>
+              </tr>
+            </thead>
+            <tbody id="donations-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading donation submissions...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrapper">
+          <div class="pagination-info" id="pagination-info">
+            Showing 0 to 0 of 0 entries
+          </div>
+          <div class="pagination-buttons" id="pagination-buttons">
+            <!-- Dynamic buttons -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Review Modal -->
+  <div id="review-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Verify Donation Receipt</h3>
+        <button onclick="closeReviewModal()" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: center; margin-bottom: 15px;">
+          <h4 id="review-donor-title" style="color: var(--primary-navy); font-size: 1.1rem;">Donor: -</h4>
+          <p id="review-amount-title" style="color: var(--success); font-weight: 700; font-size: 1.25rem;">Amount: ₹0</p>
+        </div>
+
+        <div>
+          <strong style="display: block; margin-bottom: 8px; color: var(--text-dark);">Payment Screenshot Proof:</strong>
+          <img id="review-screenshot" src="" alt="Screenshot Not Available" class="receipt-preview" onclick="window.open(this.src, '_blank')">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+          <div>
+            <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">UTR/Transaction Number</strong>
+            <span id="review-utr" style="font-weight: 700; font-family: monospace; font-size: 1.05rem;">-</span>
+          </div>
+          <div>
+            <strong style="color: var(--text-muted); font-size: 0.8rem; display: block;">Membership ID Link</strong>
+            <span id="review-member-link" style="font-weight: 600;">-</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="review-note">Admin Verification Note (Reason for reject or general comment)</label>
+          <textarea id="review-note" class="form-control" rows="3" placeholder="Enter comments here..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" id="modal-footer-actions">
+        <button onclick="closeReviewModal()" class="btn btn-secondary">Cancel</button>
+        <button onclick="submitReview('rejected')" class="btn btn-danger"><i class="fa-solid fa-circle-xmark"></i> Reject Payment</button>
+        <button onclick="submitReview('approved')" class="btn btn-success"><i class="fa-solid fa-circle-check"></i> Approve Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    let currentPage = 1;
+    let searchVal = '';
+    let statusFilter = '';
+    let selectedDonation = null;
+
+    async function loadDonations() {
+      try {
+        const queryParams = new URLSearchParams({
+          page: currentPage,
+          limit: 10,
+          search: searchVal,
+          status: statusFilter
+        });
+
+        const res = await apiRequest(`/donations?${queryParams.toString()}`);
+        if (res.success) {
+          renderDonationsTable(res.data);
+          renderPagination(res.pagination);
+        }
+      } catch (err) {
+        showToast('Failed to retrieve donations.', 'error');
+      }
+    }
+
+    function renderDonationsTable(donations) {
+      const tbody = document.getElementById('donations-table-body');
+      tbody.innerHTML = '';
+
+      if (donations.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No donations found matching criteria.</td></tr>`;
+        return;
+      }
+
+      donations.forEach(don => {
+        const dateStr = new Date(don.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        let statusClass = 'badge-pending';
+        if (don.status === 'approved') statusClass = 'badge-approved';
+        if (don.status === 'rejected') statusClass = 'badge-rejected';
+
+        // Check if receipt screenshot exists
+        const hasScreenshot = don.screenshotPath ? true : false;
+        
+        let actionBtnHtml = '';
+        if (don.status === 'pending') {
+          actionBtnHtml = `
+            <button onclick="openReviewModal('${don._id}')" class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-magnifying-glass-dollar"></i> Review
+            </button>
+          `;
+        } else {
+          actionBtnHtml = `
+            <button onclick="openReviewModal('${don._id}', true)" class="btn btn-secondary btn-sm" title="View details only">
+              <i class="fa-solid fa-circle-info"></i> Details
+            </button>
+          `;
+        }
+
+        tbody.innerHTML += `
+          <tr>
+            <td>
+              <div>
+                <strong>${don.donorName}</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">${don.mobile} ${don.email ? '| ' + don.email : ''}</div>
+              </div>
+            </td>
+            <td><code style="font-weight: 700;">${don.membershipId || 'N/A'}</code></td>
+            <td><strong style="color: var(--primary-navy);">₹${don.amountINR.toLocaleString()}</strong></td>
+            <td><code style="font-size: 0.85rem;">${don.utrNumber}</code></td>
+            <td>${dateStr}</td>
+            <td><span class="badge ${statusClass}">${don.status}</span></td>
+            <td style="text-align: right;">${actionBtnHtml}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderPagination(pagination) {
+      const info = document.getElementById('pagination-info');
+      const buttons = document.getElementById('pagination-buttons');
+      
+      const startEntry = (pagination.page - 1) * pagination.limit + 1;
+      const endEntry = Math.min(pagination.page * pagination.limit, pagination.total);
+
+      info.textContent = pagination.total > 0 
+        ? `Showing ${startEntry} to ${endEntry} of ${pagination.total} entries`
+        : `Showing 0 to 0 of 0 entries`;
+
+      buttons.innerHTML = '';
+
+      // Prev
+      const prevDisabled = pagination.page === 1 ? 'disabled' : '';
+      buttons.innerHTML += `<button class="btn btn-secondary btn-sm" ${prevDisabled} onclick="changePage(${pagination.page - 1})"><i class="fa-solid fa-chevron-left"></i></button>`;
+
+      // Numbers
+      for (let i = 1; i <= pagination.pages; i++) {
+        const activeClass = i === pagination.page ? 'btn-primary' : 'btn-secondary';
+        buttons.innerHTML += `<button class="btn ${activeClass} btn-sm" onclick="changePage(${i})">${i}</button>`;
+      }
+
+      // Next
+      const nextDisabled = pagination.page === pagination.pages || pagination.pages === 0 ? 'disabled' : '';
+      buttons.innerHTML += `<button class="btn btn-secondary btn-sm" ${nextDisabled} onclick="changePage(${pagination.page + 1})"><i class="fa-solid fa-chevron-right"></i></button>`;
+    }
+
+    function changePage(page) {
+      currentPage = page;
+      loadDonations();
+    }
+
+    let searchTimer;
+    function handleSearch() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        searchVal = document.getElementById('donation-search').value;
+        currentPage = 1;
+        loadDonations();
+      }, 300);
+    }
+
+    function handleFilter() {
+      statusFilter = document.getElementById('donation-status-filter').value;
+      currentPage = 1;
+      loadDonations();
+    }
+
+    // Modal Operations
+    async function openReviewModal(donationId, viewOnly = false) {
+      try {
+        const res = await apiRequest(`/donations?search=${donationId}`); // simple retrieve
+        if (res.success && res.data.length > 0) {
+          selectedDonation = res.data.find(d => d._id === donationId);
+          
+          document.getElementById('review-donor-title').textContent = `Donor: ${selectedDonation.donorName}`;
+          document.getElementById('review-amount-title').textContent = `Amount: ₹${selectedDonation.amountINR.toLocaleString()}`;
+          
+          const ssImg = document.getElementById('review-screenshot');
+          ssImg.src = selectedDonation.screenshotPath || '../uploads/donations/no-screenshot.png';
+          ssImg.onerror = () => { ssImg.src = 'https://placehold.co/400x300?text=Screenshot+Not+Found'; };
+
+          document.getElementById('review-utr').textContent = selectedDonation.utrNumber;
+          document.getElementById('review-member-link').textContent = selectedDonation.membershipId || 'Not Linked';
+          
+          const noteTextarea = document.getElementById('review-note');
+          noteTextarea.value = selectedDonation.adminNote || '';
+
+          const footer = document.getElementById('modal-footer-actions');
+          if (viewOnly) {
+            noteTextarea.disabled = true;
+            footer.innerHTML = `
+              <span style="font-size:0.85rem; color:var(--text-muted); margin-right:auto;">
+                Reviewed by: ${selectedDonation.reviewedBy ? selectedDonation.reviewedBy.name : 'System'} on ${new Date(selectedDonation.reviewedAt).toLocaleDateString()}
+              </span>
+              <button onclick="closeReviewModal()" class="btn btn-secondary">Close</button>
+            `;
+          } else {
+            noteTextarea.disabled = false;
+            footer.innerHTML = `
+              <button onclick="closeReviewModal()" class="btn btn-secondary">Cancel</button>
+              <button onclick="submitReview('rejected')" class="btn btn-danger"><i class="fa-solid fa-circle-xmark"></i> Reject Payment</button>
+              <button onclick="submitReview('approved')" class="btn btn-success"><i class="fa-solid fa-circle-check"></i> Approve Payment</button>
+            `;
+          }
+
+          document.getElementById('review-modal').classList.add('active');
+        }
+      } catch (err) {
+        showToast('Failed to load donation details.', 'error');
+      }
+    }
+
+    function closeReviewModal() {
+      document.getElementById('review-modal').classList.remove('active');
+      selectedDonation = null;
+    }
+
+    async function submitReview(status) {
+      if (!selectedDonation) return;
+      
+      const adminNote = document.getElementById('review-note').value;
+      const confirmMsg = `Are you sure you want to mark this donation as ${status.toUpperCase()}?`;
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        const res = await apiRequest(`/donations/${selectedDonation._id}/review`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status, adminNote })
+        });
+
+        if (res.success) {
+          showToast(`Donation marked as ${status} successfully.`, 'success');
+          closeReviewModal();
+          loadDonations();
+        }
+      } catch (err) {
+        showToast('Failed to submit review: ' + err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDonations);
+  </script>
+</body>
+</html>

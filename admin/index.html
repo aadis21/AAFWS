@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAFWS Admin Login</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">AAFWS<span>.</span></div>
+        <p class="auth-subtitle">Admin Portal Login</p>
+      </div>
+
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input class="form-control" type="email" id="email" required placeholder="admin@aafws.org">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-control" type="password" id="password" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          <i class="fa-solid fa-right-to-bracket"></i> Login
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      try {
+        const res = await apiRequest('/admin/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
+        
+        if (res.success) {
+          localStorage.setItem('admin_token', res.token);
+          localStorage.setItem('admin_user', JSON.stringify(res.admin));
+          showToast('Login successful! Redirecting...', 'success');
+          
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 1000);
+        }
+      } catch (err) {
+        showToast(err.message || 'Login failed. Please check credentials.', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

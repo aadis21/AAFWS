@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAFWS Admin Settings</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">AAFWS<span>.</span></div>
+      </div>
+      <nav class="sidebar-menu">
+        <ul>
+          <li class="sidebar-item">
+            <a href="dashboard.html" class="sidebar-link">
+              <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="members.html" class="sidebar-link">
+              <i class="fa-solid fa-users"></i> Members
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="donations.html" class="sidebar-link">
+              <i class="fa-solid fa-hand-holding-dollar"></i> Donations
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="settings.html" class="sidebar-link active">
+              <i class="fa-solid fa-gears"></i> Settings
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="notifications.html" class="sidebar-link">
+              <i class="fa-solid fa-bell"></i> Notifications
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="admin-profile">
+          <div class="admin-avatar" id="admin-profile-avatar">A</div>
+          <div class="admin-info">
+            <span class="admin-name" id="admin-profile-name">Admin User</span>
+            <span class="admin-role">System Administrator</span>
+          </div>
+        </div>
+        <button onclick="logout()" class="btn btn-danger btn-sm btn-block">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="page-title">
+          <h1>System Settings</h1>
+          <p>Configure default donation rules, QR codes, and passwords</p>
+        </div>
+        <div class="header-actions">
+          <div class="notification-bell" onclick="window.location.href='notifications.html'">
+            <i class="fa-solid fa-bell fa-lg"></i>
+            <span class="notification-badge" id="notification-badge-count" style="display: none;">0</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Settings Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+        
+        <!-- Change Password Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Change Admin Password</h2>
+          </div>
+          <form id="change-password-form">
+            <div class="form-group">
+              <label class="form-label" for="currentPassword">Current Password</label>
+              <input type="password" id="currentPassword" class="form-control" required placeholder="••••••••">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="newPassword">New Password</label>
+              <input type="password" id="newPassword" class="form-control" required placeholder="Min 6 characters">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="confirmPassword">Confirm New Password</label>
+              <input type="password" id="confirmPassword" class="form-control" required placeholder="Confirm new password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              <i class="fa-solid fa-key"></i> Update Password
+            </button>
+          </form>
+        </div>
+
+        <!-- Donation QR Management Card -->
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div class="card-header">
+              <h2>Donation QR Code</h2>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+              <strong style="display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 0.85rem;">Active QR Image</strong>
+              <div style="border: 1.5px solid var(--border-color); padding: 10px; border-radius: 8px; display: inline-block; background-color: var(--white);">
+                <img id="settings-qr-preview" src="" alt="No Active QR Uploaded" style="max-height: 180px; max-width: 180px; object-fit: contain; display: block; margin: 0 auto;">
+              </div>
+            </div>
+
+            <form id="qr-upload-form">
+              <div class="form-group">
+                <label class="form-label" for="qrImage">Upload New QR Code (JPG, PNG, WEBP)</label>
+                <input type="file" id="qrImage" class="form-control" required accept="image/*">
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button type="button" onclick="deleteQrCode()" class="btn btn-danger" style="flex: 1;">
+                  <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+                <button type="submit" class="btn btn-gold" style="flex: 1;">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Upload
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Donation Instructions Text Area Card -->
+      <div class="card" style="margin-top: 24px;">
+        <div class="card-header">
+          <h2>Donation Instructions text</h2>
+        </div>
+        <form id="instructions-form">
+          <div class="form-group">
+            <label class="form-label" for="donation-instructions-textarea">Instructions displayed to the public on the donation page</label>
+            <textarea id="donation-instructions-textarea" class="form-control" rows="4" required placeholder="Enter instructions..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="min-width: 180px;">
+            <i class="fa-solid fa-floppy-disk"></i> Save Instructions
+          </button>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    // Load Settings
+    async function loadSettings() {
+      try {
+        // Load QR
+        const qrRes = await apiRequest('/settings/donation-qr');
+        const qrImg = document.getElementById('settings-qr-preview');
+        if (qrRes.qrPath) {
+          qrImg.src = qrRes.qrPath;
+        } else {
+          qrImg.src = 'https://placehold.co/180?text=No+QR+Uploaded';
+        }
+
+        // Load Instructions
+        const instRes = await apiRequest('/settings/donation-instructions');
+        document.getElementById('donation-instructions-textarea').value = instRes.instructions;
+      } catch (err) {
+        showToast('Failed to load settings configuration.', 'error');
+      }
+    }
+
+    // Update Password
+    document.getElementById('change-password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (newPassword !== confirmPassword) {
+        showToast('New passwords do not match!', 'error');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        showToast('Password must be at least 6 characters.', 'error');
+        return;
+      }
+
+      try {
+        const res = await apiRequest('/settings/change-password', {
+          method: 'PATCH',
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+
+        if (res.success) {
+          showToast(res.message, 'success');
+          document.getElementById('change-password-form').reset();
+        }
+      } catch (err) {
+        showToast('Failed to change password: ' + err.message, 'error');
+      }
+    });
+
+    // Upload QR Code
+    document.getElementById('qr-upload-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('qrImage');
+      if (fileInput.files.length === 0) return;
+
+      const formData = new FormData();
+      formData.append('qrImage', fileInput.files[0]);
+
+      try {
+        showToast('Uploading QR code image...', 'info');
+        const token = localStorage.getItem('admin_token');
+        
+        // Custom fetch call for multi-part FormData
+        const response = await fetch('/api/settings/donation-qr', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Upload failed.');
+        }
+
+        if (data.success) {
+          showToast(data.message, 'success');
+          document.getElementById('qr-upload-form').reset();
+          loadSettings(); // refresh qr preview image
+        }
+      } catch (err) {
+        showToast('Upload failed: ' + err.message, 'error');
+      }
+    });
+
+    // Delete QR Code
+    async function deleteQrCode() {
+      if (!confirm('Are you sure you want to delete the donation QR code? Public users will not see any QR code.')) return;
+
+      try {
+        const res = await apiRequest('/settings/donation-qr', { method: 'DELETE' });
+        if (res.success) {
+          showToast(res.message, 'success');
+          loadSettings();
+        }
+      } catch (err) {
+        showToast('Delete failed: ' + err.message, 'error');
+      }
+    }
+
+    // Save Instructions
+    document.getElementById('instructions-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const instructions = document.getElementById('donation-instructions-textarea').value;
+
+      try {
+        const res = await apiRequest('/settings/donation-instructions', {
+          method: 'PATCH',
+          body: JSON.stringify({ instructions })
+        });
+
+        if (res.success) {
+          showToast(res.message, 'success');
+        }
+      } catch (err) {
+        showToast('Save failed: ' + err.message, 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadSettings);
+  </script>
+</body>
+</html>

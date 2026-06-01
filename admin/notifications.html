@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAFWS Admin Notifications</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">AAFWS<span>.</span></div>
+      </div>
+      <nav class="sidebar-menu">
+        <ul>
+          <li class="sidebar-item">
+            <a href="dashboard.html" class="sidebar-link">
+              <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="members.html" class="sidebar-link">
+              <i class="fa-solid fa-users"></i> Members
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="donations.html" class="sidebar-link">
+              <i class="fa-solid fa-hand-holding-dollar"></i> Donations
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="settings.html" class="sidebar-link">
+              <i class="fa-solid fa-gears"></i> Settings
+            </a>
+          </li>
+          <li class="sidebar-item">
+            <a href="notifications.html" class="sidebar-link active">
+              <i class="fa-solid fa-bell"></i> Notifications
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="admin-profile">
+          <div class="admin-avatar" id="admin-profile-avatar">A</div>
+          <div class="admin-info">
+            <span class="admin-name" id="admin-profile-name">Admin User</span>
+            <span class="admin-role">System Administrator</span>
+          </div>
+        </div>
+        <button onclick="logout()" class="btn btn-danger btn-sm btn-block">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="page-title">
+          <h1>Admin Notifications</h1>
+          <p>Real-time alerts for member registrations and payments</p>
+        </div>
+        <div class="header-actions">
+          <button onclick="markAllAsRead()" class="btn btn-secondary btn-sm" id="mark-all-read-btn">
+            <i class="fa-solid fa-envelope-open"></i> Mark All as Read
+          </button>
+        </div>
+      </header>
+
+      <!-- Notifications Feed -->
+      <div class="card">
+        <div class="notification-list" id="notifications-list-container">
+          <p style="text-align: center; color: var(--text-muted); padding: 20px;">Loading alerts...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/admin-api.js"></script>
+  <script>
+    async function loadNotifications() {
+      try {
+        const res = await apiRequest('/admin/notifications');
+        if (res.success) {
+          renderNotifications(res.data);
+          
+          // Disable "Mark All as Read" if there are no unread notifications
+          const markAllBtn = document.getElementById('mark-all-read-btn');
+          if (res.unreadCount === 0) {
+            markAllBtn.disabled = true;
+            markAllBtn.style.opacity = '0.5';
+            markAllBtn.style.cursor = 'not-allowed';
+          } else {
+            markAllBtn.disabled = false;
+            markAllBtn.style.opacity = '1';
+            markAllBtn.style.cursor = 'pointer';
+          }
+        }
+      } catch (err) {
+        showToast('Failed to load notifications.', 'error');
+      }
+    }
+
+    function renderNotifications(notifications) {
+      const container = document.getElementById('notifications-list-container');
+      container.innerHTML = '';
+
+      if (notifications.length === 0) {
+        container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 20px;">No alerts received yet.</p>`;
+        return;
+      }
+
+      notifications.forEach(notif => {
+        const dateStr = new Date(notif.createdAt).toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        const unreadClass = notif.isRead ? '' : 'unread';
+        const typeBadge = notif.type === 'new_member' 
+          ? `<span class="badge badge-active" style="background-color:rgba(11,25,44,0.1); color:var(--primary-navy);">Member</span>`
+          : `<span class="badge badge-pending">Donation</span>`;
+
+        container.innerHTML += `
+          <div class="notification-item ${unreadClass} ${notif.type}" onclick="handleNotificationClick('${notif._id}', '${notif.type}', '${notif.referenceId}')" style="cursor: pointer;">
+            <div class="notification-content">
+              <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 4px;">
+                ${typeBadge}
+                <span class="notification-time">${dateStr}</span>
+              </div>
+              <h4 style="color: var(--primary-navy);">${notif.message}</h4>
+              <p style="font-size: 0.8rem;">Reference ID: <code>${notif.referenceId}</code> ${notif.isRead ? '' : '• <strong>New</strong>'}</p>
+            </div>
+            <div>
+              ${notif.isRead ? '<i class="fa-regular fa-envelope-open" style="color:var(--text-muted);"></i>' : '<i class="fa-solid fa-envelope" style="color:var(--gold);"></i>'}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function handleNotificationClick(id, type, refId) {
+      try {
+        // Mark as read first
+        await apiRequest(`/admin/notifications/${id}/read`, {
+          method: 'PATCH'
+        });
+
+        // Navigate based on type
+        if (type === 'new_member') {
+          window.location.href = `member-detail.html?id=${refId}`;
+        } else if (type === 'new_donation') {
+          window.location.href = `donations.html`;
+        }
+      } catch (err) {
+        console.error('Failed to handle notification click:', err);
+      }
+    }
+
+    async function markAllAsRead() {
+      try {
+        const res = await apiRequest('/admin/notifications/read-all', {
+          method: 'PATCH'
+        });
+        if (res.success) {
+          showToast(res.message, 'success');
+          loadNotifications();
+          loadUnreadNotificationCount(); // updates top badge count
+        }
+      } catch (err) {
+        showToast('Failed to update notifications.', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadNotifications);
+  </script>
+</body>
+</html>
